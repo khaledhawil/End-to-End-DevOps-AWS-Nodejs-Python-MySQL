@@ -18,7 +18,7 @@ CORS(app,
      allow_headers=['Content-Type', 'Authorization'],
      expose_headers=['Content-Type', 'Authorization'])
 
-# Database connection pool
+# Database connection pool //
 db_config = {
     "host": os.getenv("DB_HOST", "mysql"),
     "user": os.getenv("DB_USER", "root"),

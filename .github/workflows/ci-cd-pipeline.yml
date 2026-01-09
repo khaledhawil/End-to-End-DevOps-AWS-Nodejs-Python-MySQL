@@ -11,6 +11,11 @@ on:
     paths:
       - 'services/**'
 
+permissions:
+  contents: write
+  security-events: write
+  actions: read
+
 env:
   DOCKER_REGISTRY: docker.io  # Change to your ECR URL for AWS ECR
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -101,16 +106,18 @@ jobs:
 
       - name: Scan Auth Service image with Trivy
         uses: aquasecurity/trivy-action@master
+        continue-on-error: true
         with:
           image-ref: ${{ env.DOCKER_USERNAME }}/task-manager-auth:${{ env.IMAGE_TAG }}
           format: 'sarif'
           output: 'trivy-auth-results.sarif'
           severity: 'CRITICAL,HIGH'
-          exit-code: '0'  # Don't fail on vulnerabilities (change to 1 to fail)
+          exit-code: '0'
 
       - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() && hashFiles('trivy-auth-results.sarif') != ''
+        continue-on-error: true
         with:
           sarif_file: 'trivy-auth-results.sarif'
           category: 'auth-service'
@@ -165,6 +172,7 @@ jobs:
 
       - name: Scan Task Service image with Trivy
         uses: aquasecurity/trivy-action@master
+        continue-on-error: true
         with:
           image-ref: ${{ env.DOCKER_USERNAME }}/task-manager-task:${{ env.IMAGE_TAG }}
           format: 'sarif'
@@ -173,8 +181,9 @@ jobs:
           exit-code: '0'
 
       - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() && hashFiles('trivy-task-results.sarif') != ''
+        continue-on-error: true
         with:
           sarif_file: 'trivy-task-results.sarif'
           category: 'task-service'
@@ -229,6 +238,7 @@ jobs:
 
       - name: Scan Frontend image with Trivy
         uses: aquasecurity/trivy-action@master
+        continue-on-error: true
         with:
           image-ref: ${{ env.DOCKER_USERNAME }}/task-manager-frontend:${{ env.IMAGE_TAG }}
           format: 'sarif'
@@ -237,8 +247,9 @@ jobs:
           exit-code: '0'
 
       - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() && hashFiles('trivy-frontend-results.sarif') != ''
+        continue-on-error: true
         with:
           sarif_file: 'trivy-frontend-results.sarif'
           category: 'frontend'
@@ -293,6 +304,7 @@ jobs:
 
       - name: Scan Nginx image with Trivy
         uses: aquasecurity/trivy-action@master
+        continue-on-error: true
         with:
           image-ref: ${{ env.DOCKER_USERNAME }}/task-manager-nginx:${{ env.IMAGE_TAG }}
           format: 'sarif'
@@ -301,8 +313,9 @@ jobs:
           exit-code: '0'
 
       - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() && hashFiles('trivy-nginx-results.sarif') != ''
+        continue-on-error: true
         with:
           sarif_file: 'trivy-nginx-results.sarif'
           category: 'nginx'

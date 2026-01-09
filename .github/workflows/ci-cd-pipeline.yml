@@ -375,8 +375,7 @@ jobs:
               echo "Updating $service to tag: $TAG"
               
               # Update the image in the deployment file
-              sed -i "s|image: .*/${service}:.*|image: ${{ env.DOCKER_USERNAME }}/task-manager-${service}:${TAG}|g" "$deployment_file"
-              sed -i "s|image: task-manager:${service}|image: ${{ env.DOCKER_USERNAME }}/task-manager-${service}:${TAG}|g" "$deployment_file"
+              sed -i "s|image: .*/task-manager-${service}:.*|image: ${{ env.DOCKER_USERNAME }}/task-manager-${service}:${TAG}|g" "$deployment_file"
               
               echo "✅ Updated $deployment_file with new image tag"
             else

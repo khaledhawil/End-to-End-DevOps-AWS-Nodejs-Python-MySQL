@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: logout-service
-          image: task-manager:logout-service
-          imagePullPolicy: IfNotPresent
+          image: khaledhawil/task-manager-task:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80

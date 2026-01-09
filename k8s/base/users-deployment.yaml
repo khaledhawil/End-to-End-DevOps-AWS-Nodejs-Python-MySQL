@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: users-service
-          image: task-manager:users-service
-          imagePullPolicy: IfNotPresent
+          image: khaledhawil/task-manager-auth:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           env:

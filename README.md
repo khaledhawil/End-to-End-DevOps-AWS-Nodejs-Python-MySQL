@@ -169,8 +169,6 @@ JWT enables stateless authentication, eliminating server-side session storage an
 │       └── production/                     # Production environment Flux config
 │
 ├── k8s/
-│   ├── README.md                           # Kubernetes manifests documentation
-│   ├── KUSTOMIZE_GUIDE.md                  # Kustomize usage guide
 │   ├── base/                               # Base Kubernetes manifests
 │   │   ├── namespace.yaml                  # Namespace definition (tms-app)
 │   │   ├── mysql-configmap.yaml            # MySQL configuration
@@ -192,9 +190,7 @@ JWT enables stateless authentication, eliminating server-side session storage an
 │       ├── staging/                        # Staging environment overlay
 │       └── production/                     # Production environment overlay
 │           ├── kustomization.yaml
-│           ├── ingress.yaml
-│           └── secrets-instructions.md     # Production secrets guide
-│
+│           ├── ingress.yaml│
 ├── services/
 │   ├── docker-compose.yml                  # Local development compose file
 │   ├── init-db.sql                         # Database initialization script

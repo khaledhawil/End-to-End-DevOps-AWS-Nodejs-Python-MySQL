@@ -277,7 +277,7 @@ Environments are separated using Kustomize overlays. Each environment has its ow
 
 Flux CD continuously monitors both the Git repository and the cluster state. If manual changes are made to the cluster, Flux automatically reverts them to match the Git state within one minute. This prevents configuration drift and ensures the cluster always matches the declared desired state in Git.
 
-## Prerequisites
+## Prerequisites:
 
 ### Required Tools
 

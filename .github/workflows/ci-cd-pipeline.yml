@@ -872,42 +872,47 @@ jobs:
           
           # Function to update deployment file - only if build succeeded
           update_deployment() {
-            local service=$1
-            local deployment_file=$2
-            local build_result=$3
-            local tag_file="artifacts/${service}-artifacts/${service}-tag.txt"
+            local artifact_name=$1        # e.g., "auth-service", "task-service", "frontend"
+            local image_name=$2            # e.g., "task-manager-auth", "task-manager-task"
+            local deployment_file=$3
+            local build_result=$4
+            local tag_file="artifacts/${artifact_name}-artifacts/${artifact_name}-tag.txt"
+            
+            echo "Checking for artifact: $tag_file"
             
             # Only update if build succeeded
             if [ "$build_result" == "success" ] && [ -f "$tag_file" ]; then
               TAG=$(cat "$tag_file")
-              echo "✅ Updating $service to tag: $TAG (build succeeded)"
+              echo "✅ Updating ${artifact_name} to tag: $TAG (build succeeded)"
               
               # Update the image in the deployment file
-              sed -i "s|image: .*/task-manager-${service#auth-}:.*|image: ${{ env.DOCKER_USERNAME }}/task-manager-${service#auth-}:${TAG}|g" "$deployment_file"
+              sed -i "s|image: .*/${image_name}:.*|image: ${{ env.DOCKER_USERNAME }}/${image_name}:${TAG}|g" "$deployment_file"
               
               echo "✅ Updated $deployment_file with new image tag"
-              UPDATED_SERVICES="${UPDATED_SERVICES}${service}:${TAG}\n"
+              UPDATED_SERVICES="${UPDATED_SERVICES}${artifact_name}:${TAG} "
             else
               if [ "$build_result" == "failure" ]; then
-                echo "❌ Skipping $service (build failed - keeping existing tag)"
+                echo "❌ Skipping ${artifact_name} (build failed - keeping existing tag)"
+              elif [ "$build_result" == "skipped" ]; then
+                echo "⏭️  Skipping ${artifact_name} (no changes detected)"
               else
-                echo "⏭️  Skipping $service (no changes detected)"
+                echo "⚠️  Skipping ${artifact_name} (build result: $build_result)"
               fi
             fi
           }
           
           # Update each service based on build result
-          update_deployment "auth" "k8s/base/users-deployment.yaml" "${{ needs.build-auth-service.result }}"
-          update_deployment "task" "k8s/base/logout-deployment.yaml" "${{ needs.build-task-service.result }}"
-          update_deployment "frontend" "k8s/base/frontend-deployment.yaml" "${{ needs.build-frontend.result }}"
+          update_deployment "auth-service" "task-manager-auth" "k8s/base/users-deployment.yaml" "${{ needs.build-auth-service.result }}"
+          update_deployment "task-service" "task-manager-task" "k8s/base/logout-deployment.yaml" "${{ needs.build-task-service.result }}"
+          update_deployment "frontend" "task-manager-frontend" "k8s/base/frontend-deployment.yaml" "${{ needs.build-frontend.result }}"
           
           # Display changes
           echo ""
-          echo "📋 Changes made:"
-          git diff k8s/
+          echo "📋 Git changes made:"
+          git diff k8s/ || echo "No changes detected"
           
-          # Save updated services for commit message
-          echo -e "$UPDATED_SERVICES" > /tmp/updated-services.txt
+          # Save updated services info
+          echo "$UPDATED_SERVICES" > /tmp/updated-services.txt
 
       - name: Commit and push K8s manifest changes
         run: |

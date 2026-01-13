@@ -22,7 +22,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: logout-service
-          image: khaledhawil/task-manager-task:1.0.16
+          image: khaledhawil/task-manager-task:1.0.18
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

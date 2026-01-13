@@ -32,7 +32,21 @@ db_config = {
     "pool_size": 5
 }
 
-connection_pool = pooling.MySQLConnectionPool(**db_config)
+# Initialize connection pool as None, will be created on first use
+connection_pool = None
+
+def get_connection_pool():
+    """Lazy initialization of connection pool"""
+    global connection_pool
+    if connection_pool is None:
+        try:
+            logger.info("Creating MySQL connection pool...")
+            connection_pool = pooling.MySQLConnectionPool(**db_config)
+            logger.info("MySQL connection pool created successfully")
+        except Exception as e:
+            logger.error(f"Failed to create connection pool: {e}")
+            raise
+    return connection_pool
 
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key")
 
@@ -72,7 +86,8 @@ def health():
 @verify_token
 def get_tasks():
     try:
-        conn = connection_pool.get_connection()
+        pool = get_connection_pool()
+        conn = pool.get_connection()
         cursor = conn.cursor(dictionary=True)
         
         cursor.execute(
@@ -102,7 +117,8 @@ def create_task():
         return jsonify({"error": "Title and description required"}), 400
     
     try:
-        conn = connection_pool.get_connection()
+        pool = get_connection_pool()
+        conn = pool.get_connection()
         cursor = conn.cursor()
         
         logger.info(f"Creating task for user {request.user_id}: {title}")
@@ -125,7 +141,8 @@ def create_task():
 @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
 @verify_token
 def delete_task(task_id):
-    try:
+    try:pool = get_connection_pool()
+        conn = 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()
         
@@ -160,7 +177,8 @@ def update_task(task_id):
     if not title or not description:
         return jsonify({"error": "Title and description required"}), 400
     
-    try:
+    try:pool = get_connection_pool()
+        conn = 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()
         
@@ -199,7 +217,8 @@ def update_task(task_id):
 @verify_token
 def toggle_task_status(task_id):
     try:
-        conn = connection_pool.get_connection()
+        pool = get_connection_pool()
+        conn = pool.get_connection()
         cursor = conn.cursor()
         
         # Get current status

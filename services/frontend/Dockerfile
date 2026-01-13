@@ -9,8 +9,7 @@ RUN apk update && \
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --omit=dev && \
-    npm install && \
+RUN npm install && \
     npm cache clean --force
 
 COPY . .

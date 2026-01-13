@@ -11,7 +11,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies and clean cache
-RUN npm ci --omit=dev && \
+RUN npm install --omit=dev && \
     npm cache clean --force
 
 # Copy only necessary files

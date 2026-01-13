@@ -16,8 +16,8 @@ spec:
       serviceAccountName: task-service-sa
       securityContext:
         runAsNonRoot: true
-        runAsUser: 65534
-        fsGroup: 65534
+        runAsUser: 1000
+        fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -28,7 +28,7 @@ spec:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
             runAsNonRoot: true
-            runAsUser: 65534
+            runAsUser: 1000
             capabilities:
               drop:
                 - ALL

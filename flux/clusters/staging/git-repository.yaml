@@ -8,7 +8,7 @@ spec:
   interval: 5m0s
   ref:
     branch: staging
-  url: https://github.com/khaledhawil/End-to-End-DevOps-AWS-Php-MySQL
+  url: 
   # For private repos, add secretRef:
   # secretRef:
   #   name: github-credentials

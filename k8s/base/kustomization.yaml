@@ -16,6 +16,5 @@ resources:
   - logout-service.yaml
   - mysql-configmap.yaml
 
-commonLabels:
-  app.kubernetes.io/name: task-management-system
-  app.kubernetes.io/managed-by: kustomize
+# Note: commonLabels removed because it adds labels to NetworkPolicy selectors,
+# breaking pod matching. Labels should be added directly to resources if needed.

@@ -5,10 +5,10 @@ metadata:
   name: task-management-system
   namespace: flux-system
 spec:
-  interval: 1m0s
+  interval: 30s
   ref:
     branch: master
-  url: https://github.com/khaledhawil/End-to-End-DevOps-AWS-Php-MySQL
+  url: https://github.com/khaledhawil/End-to-End-DevOps-AWS-Nodejs-Python-MySQL.git
   # For private repos, add secretRef:
   # secretRef:
   #   name: github-credentials

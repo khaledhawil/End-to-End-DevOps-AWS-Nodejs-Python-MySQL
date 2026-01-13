@@ -421,8 +421,6 @@ jobs:
     outputs:
       success: ${{ steps.build-status.outputs.success }}
       version: ${{ needs.generate-version.outputs.version }}
-    if: needs.detect-changes.outputs.frontend == 'true'
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

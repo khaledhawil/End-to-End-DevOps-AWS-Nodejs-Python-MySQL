@@ -111,7 +111,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: logout-service
+      app: task-service
   policyTypes:
   - Ingress
   - Egress
@@ -175,6 +175,9 @@ spec:
     - podSelector:
         matchLabels:
           app: logout-service
+    - podSelector:
+        matchLabels:
+          app: task-service
     ports:
     - protocol: TCP
       port: 3306

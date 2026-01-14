@@ -15,7 +15,6 @@ resources:
   - logout-deployment.yaml
   - logout-service.yaml
   - task-service-deployment.yaml
-  - task-service-service.yaml
   - mysql-configmap.yaml
 
 # Note: commonLabels removed because it adds labels to NetworkPolicy selectors,

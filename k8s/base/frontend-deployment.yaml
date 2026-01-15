@@ -22,8 +22,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: frontend
-          image: khaledhawil/task-manager-frontend:1.0.21
-          imagePullPolicy: Always
+          image: khaledhawil/task-manager-frontend:1.0.22
+          imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false  # Nginx needs to write config during startup

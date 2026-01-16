@@ -1,0 +1,13 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: prometheus-crds
+  namespace: flux-system
+spec:
+  interval: 1h
+  prune: false
+  sourceRef:
+    kind: GitRepository
+    name: task-management-system
+  path: ./k8s/monitoring/crds
+  wait: true

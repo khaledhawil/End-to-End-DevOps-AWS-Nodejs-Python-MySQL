@@ -86,8 +86,7 @@ function App() {
 
   const PublicRoute = ({ children }) => {
     if (loading) return <LoadingScreen />
-    // Don't redirect if already authenticated - let the component handle it
-    return children
+    return isAuthenticated ? <Navigate to="/dashboard" replace /> : children
   }
 
   return (
@@ -95,11 +94,19 @@ function App() {
       <Routes>
         <Route 
           path="/login" 
-          element={<Login setAuth={setIsAuthenticated} setUser={setUser} />} 
+          element={
+            <PublicRoute>
+              <Login setAuth={setIsAuthenticated} setUser={setUser} />
+            </PublicRoute>
+          } 
         />
         <Route 
           path="/register" 
-          element={<Register />} 
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          } 
         />
         <Route
           path="/dashboard"

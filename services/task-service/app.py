@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import mysql.connector
 from mysql.connector import pooling
 import jwt
@@ -7,20 +9,72 @@ import os
 import logging
 from functools import wraps
 from datetime import datetime
+from pydantic import BaseModel, Field, ValidationError, validator
+from typing import Optional
 
 # CI/CD Pipeline Full Test - January 2026 v1.0.0 // // // //
 # Task service with automated builds and security scanning
 # Testing multi-service deployment
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+# Enhanced CORS with specific origins
+allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
 CORS(app, 
      supports_credentials=True,
+     origins=allowed_origins if os.getenv('NODE_ENV') == 'production' else '*',
      allow_headers=['Content-Type', 'Authorization'],
      expose_headers=['Content-Type', 'Authorization'])
+
+# Rate limiting
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["100 per 15 minutes"],
+    storage_uri="memory://"
+)
+
+# Pydantic models for validation
+class TaskCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    description: str = Field(..., min_length=1, max_length=2000)
+    priority: str = Field(default='medium')
+    
+    @validator('priority')
+    def validate_priority(cls, v):
+        allowed_priorities = ['low', 'medium', 'high']
+        if v not in allowed_priorities:
+            raise ValueError(f'Priority must be one of: {", ".join(allowed_priorities)}')
+        return v
+
+class TaskUpdate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    description: str = Field(..., min_length=1, max_length=2000)
+    priority: Optional[str] = None
+    status: Optional[str] = None
+    
+    @validator('priority')
+    def validate_priority(cls, v):
+        if v is not None:
+            allowed_priorities = ['low', 'medium', 'high']
+            if v not in allowed_priorities:
+                raise ValueError(f'Priority must be one of: {", ".join(allowed_priorities)}')
+        return v
+    
+    @validator('status')
+    def validate_status(cls, v):
+        if v is not None:
+            allowed_statuses = ['pending', 'completed']
+            if v not in allowed_statuses:
+                raise ValueError(f'Status must be one of: {", ".join(allowed_statuses)}')
+        return v
 
 # Database connection pool //
 db_config = {
@@ -48,7 +102,11 @@ def get_connection_pool():
             raise
     return connection_pool
 
-JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key")
+# Ensure JWT_SECRET is set
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    logger.critical("JWT_SECRET environment variable not set!")
+    raise ValueError("JWT_SECRET must be set")
 
 def verify_token(f):
     @wraps(f)
@@ -56,19 +114,15 @@ def verify_token(f):
         token = request.headers.get('Authorization')
         
         if not token:
-            logger.warning("No token provided in request")
             return jsonify({"error": "No token provided"}), 401
         
         try:
             token = token.split(' ')[1] if ' ' in token else token
             payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
             request.user_id = payload['userId']
-            logger.info(f"Token verified for user {request.user_id}")
         except jwt.ExpiredSignatureError:
-            logger.warning("Token expired")
             return jsonify({"error": "Token expired"}), 401
-        except jwt.InvalidTokenError as e:
-            logger.warning(f"Invalid token: {str(e)}")
+        except jwt.InvalidTokenError:
             return jsonify({"error": "Invalid token"}), 401
         except Exception as e:
             logger.error(f"Token verification error: {str(e)}")
@@ -106,25 +160,24 @@ def get_tasks():
 
 @app.route('/api/tasks', methods=['POST'])
 @verify_token
+@limiter.limit("20 per minute")
 def create_task():
-    data = request.json
-    title = data.get('title')
-    description = data.get('description')
-    priority = data.get('priority', 'medium')
-    
-    if not title or not description:
-        logger.warning("Task creation failed: missing title or description")
-        return jsonify({"error": "Title and description required"}), 400
+    try:
+        # Validate input with Pydantic
+        task_data = TaskCreate(**request.json)
+    except ValidationError as e:
+        return jsonify({"error": e.errors()[0]['msg']}), 400
+    except Exception:
+        return jsonify({"error": "Invalid request data"}), 400
     
     try:
         pool = get_connection_pool()
         conn = pool.get_connection()
         cursor = conn.cursor()
         
-        logger.info(f"Creating task for user {request.user_id}: {title}")
         cursor.execute(
             "INSERT INTO tasks (user_id, title, description, priority) VALUES (%s, %s, %s, %s)",
-            (request.user_id, title, description, priority)
+            (request.user_id, task_data.title, task_data.description, task_data.priority)
         )
         conn.commit()
         task_id = cursor.lastrowid
@@ -135,8 +188,8 @@ def create_task():
         logger.info(f"Task created successfully with ID {task_id}")
         return jsonify({"message": "Task created", "taskId": task_id}), 201
     except Exception as e:
-        logger.error(f"Error creating task: {e}")
-        return jsonify({"error": f"Failed to create task: {str(e)}"}), 500
+        logger.error(f"Error creating task: {str(e)}")
+        return jsonify({"error": "Failed to create task"}), 500
 
 @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
 @verify_token
@@ -167,15 +220,15 @@ def delete_task(task_id):
 
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
 @verify_token
+@limiter.limit("30 per minute")
 def update_task(task_id):
-    data = request.json
-    title = data.get('title')
-    description = data.get('description')
-    priority = data.get('priority')
-    status = data.get('status')
-    
-    if not title or not description:
-        return jsonify({"error": "Title and description required"}), 400
+    try:
+        # Validate input with Pydantic
+        task_data = TaskUpdate(**request.json)
+    except ValidationError as e:
+        return jsonify({"error": e.errors()[0]['msg']}), 400
+    except Exception:
+        return jsonify({"error": "Invalid request data"}), 400
     
     try:
         pool = get_connection_pool()
@@ -183,15 +236,15 @@ def update_task(task_id):
         cursor = conn.cursor()
         
         query = "UPDATE tasks SET title = %s, description = %s"
-        params = [title, description]
+        params = [task_data.title, task_data.description]
         
-        if priority:
+        if task_data.priority:
             query += ", priority = %s"
-            params.append(priority)
+            params.append(task_data.priority)
         
-        if status:
+        if task_data.status:
             query += ", status = %s"
-            params.append(status)
+            params.append(task_data.status)
             
         query += " WHERE id = %s AND user_id = %s"
         params.extend([task_id, request.user_id])
@@ -210,7 +263,7 @@ def update_task(task_id):
         logger.info(f"Task {task_id} updated successfully")
         return jsonify({"message": "Task updated"})
     except Exception as e:
-        logger.error(f"Error updating task: {e}")
+        logger.error(f"Error updating task: {str(e)}")
         return jsonify({"error": "Failed to update task"}), 500
 
 @app.route('/api/tasks/<int:task_id>/status', methods=['PATCH'])
@@ -249,9 +302,20 @@ def toggle_task_status(task_id):
         logger.info(f"Task {task_id} status toggled to {new_status}")
         return jsonify({"message": "Status updated", "status": new_status})
     except Exception as e:
-        logger.error(f"Error toggling status: {e}")
+        logger.error(f"Error toggling status: {str(e)}")
         return jsonify({"error": "Failed to update status"}), 500
+
+# Error handlers
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({"error": "Rate limit exceeded, please try again later"}), 429
+
+@app.errorhandler(500)
+def internal_error(e):
+    logger.error(f"Internal server error: {str(e)}")
+    return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
     logger.info("Starting task service...")
+    logger.info(f"Environment: {os.getenv('NODE_ENV', 'development')}")
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 8002)))

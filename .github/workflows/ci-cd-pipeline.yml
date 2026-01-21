@@ -902,8 +902,8 @@ jobs:
           }
           
           # Update each service based on build result
-          update_deployment "auth-service" "task-manager-auth" "k8s/base/users-deployment.yaml" "${{ needs.build-auth-service.result }}"
-          update_deployment "task-service" "task-manager-task" "k8s/base/logout-deployment.yaml" "${{ needs.build-task-service.result }}"
+          update_deployment "auth-service" "task-manager-auth" "k8s/base/auth-service-deployment.yaml" "${{ needs.build-auth-service.result }}"
+          update_deployment "task-service" "task-manager-task" "k8s/base/task-service-deployment.yaml" "${{ needs.build-task-service.result }}"
           update_deployment "frontend" "task-manager-frontend" "k8s/base/frontend-deployment.yaml" "${{ needs.build-frontend.result }}"
           
           # Display changes

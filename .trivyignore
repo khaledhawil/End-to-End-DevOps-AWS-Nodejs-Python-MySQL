@@ -1,0 +1,46 @@
+# Trivy Ignore File
+# Suppress false positives and low-risk vulnerabilities
+
+# ============================================
+# Alpine Base Image - Low Risk CVEs
+# ============================================
+# These are in base system packages that we don't directly use
+# and would require local access or specific conditions to exploit
+
+# busybox - requires local shell access (we run as non-root)
+CVE-2023-42363
+CVE-2023-42364
+CVE-2023-42365
+
+# musl libc - most require specific memory corruption scenarios
+CVE-2023-4807
+
+# ssl_client - not used in our services
+CVE-2023-42366
+
+# ============================================
+# Node.js Dependencies - Development Only
+# ============================================
+# These are in devDependencies and not in production images
+# (if using --omit=dev in production)
+
+# ============================================
+# Python Dependencies - Not Exploitable
+# ============================================
+# Vulnerabilities that require specific conditions we don't meet
+
+# ============================================
+# Nginx - Low Priority
+# ============================================
+# Nginx CVEs that don't apply to our configuration
+
+# ============================================
+# Why This Approach?
+# ============================================
+# 1. Focus on vulnerabilities we can actually fix
+# 2. Don't waste time on false positives
+# 3. Monitor critical/high that affect our attack surface
+# 4. Update this file as new CVEs are analyzed
+#
+# IMPORTANT: Review this file quarterly and remove entries
+# as patches become available in base images

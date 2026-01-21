@@ -90,7 +90,8 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: jwt-secret
-                  key: secret            - name: NODE_ENV
+                  key: secret
+            - name: NODE_ENV
               value: "development"
             - name: ALLOWED_ORIGINS
               value: "*"

@@ -314,6 +314,39 @@ securityContext:
     type: RuntimeDefault
 ```
 
+### Network Policies
+
+Zero-trust network model with explicit allow rules:
+
+| Policy | Source | Destination | Ports |
+|--------|--------|-------------|-------|
+| default-deny-all | * | * | None (deny all) |
+| frontend-network-policy | Ingress Controller | Frontend | 80 |
+| auth-service-network-policy | Frontend, Ingress | Auth Service | 8001 |
+| task-service-network-policy | Frontend, Ingress | Task Service | 8002 |
+| mysql-network-policy | Auth, Task Services | MySQL | 3306 |
+
+### Pod Disruption Budgets
+
+High availability guarantees during voluntary disruptions:
+
+| Service | Min Available | Purpose |
+|---------|---------------|----------|
+| Frontend | 1 | Ensures at least one pod during node drain |
+| Auth Service | 1 | Maintains authentication availability |
+| Task Service | 1 | Maintains task operations availability |
+
+### RBAC Configuration
+
+Least-privilege access model:
+
+| ServiceAccount | Role | Permissions |
+|----------------|------|-------------|
+| frontend-sa | - | No cluster access |
+| auth-service-sa | secret-reader | Get/List specific secrets |
+| task-service-sa | secret-reader | Get/List specific secrets |
+| mysql-sa | - | No cluster access |
+
 ### Secret Management
 
 Sensitive values are managed via Kubernetes Secrets:
@@ -324,6 +357,41 @@ Sensitive values are managed via Kubernetes Secrets:
 | db-password | MySQL root password |
 | db-username | MySQL username |
 | sql-endpoint | MySQL service endpoint |
+
+---
+
+## Database Schema
+
+### Users Table
+
+```sql
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_username (username)
+);
+```
+
+### Tasks Table
+
+```sql
+CREATE TABLE tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
+    status ENUM('pending', 'in_progress', 'completed') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id),
+    INDEX idx_status (status)
+);
+```
 
 ---
 
@@ -641,6 +709,53 @@ curl -s http://<ingress-ip>/api/tasks/health
 
 ---
 
+## Deployment Diagram
+
+```
++-----------------------------------------------------------------------------------+
+|                                 Kubernetes Cluster                                |
++-----------------------------------------------------------------------------------+
+|                                                                                   |
+|  +-------------+     +------------------+     +------------------+                |
+|  | Flux CD     |---->| GitRepository    |---->| Kustomization    |                |
+|  | Controller  |     | (GitHub)         |     | (Reconciler)     |                |
+|  +-------------+     +------------------+     +------------------+                |
+|                                                       |                          |
+|                                                       v                          |
+|  +------------------------------- tms-app namespace --------------+              |
+|  |                                                                |              |
+|  |  +-----------+    +--------------+    +---------------+        |              |
+|  |  | Ingress   |--->| Frontend     |--->| Auth Service  |        |              |
+|  |  | Controller|    | (React/Nginx)|    | (Node.js)     |        |              |
+|  |  +-----------+    +--------------+    +---------------+        |              |
+|  |        |                 |                   |                 |              |
+|  |        |                 |                   v                 |              |
+|  |        |                 |            +---------------+        |              |
+|  |        +-----------------|----------->| Task Service  |        |              |
+|  |                          |            | (Python/Flask)|        |              |
+|  |                          |            +---------------+        |              |
+|  |                          |                   |                 |              |
+|  |                          v                   v                 |              |
+|  |                    +---------------------------+               |              |
+|  |                    |        MySQL              |               |              |
+|  |                    |    (Persistent Storage)  |               |              |
+|  |                    +---------------------------+               |              |
+|  |                                                                |              |
+|  +----------------------------------------------------------------+              |
+|                                                                                   |
+|  +----------------------- monitoring namespace -------------------+              |
+|  |                                                                |              |
+|  |  +------------+    +------------+    +--------------+          |              |
+|  |  | Prometheus |--->| Grafana    |    | AlertManager |          |              |
+|  |  +------------+    +------------+    +--------------+          |              |
+|  |                                                                |              |
+|  +----------------------------------------------------------------+              |
+|                                                                                   |
++-----------------------------------------------------------------------------------+
+```
+
+---
+
 ## License
 
 This project is licensed under the MIT License.
@@ -663,9 +778,19 @@ Khaled Hawil
 
 ---
 
+## Version History
+
+| Version | Date | Changes |
+|---------|------|----------|
+| 1.0.0 | January 2026 | Initial release with full CI/CD pipeline |
+| 1.0.x | January 2026 | Security hardening and rate limiting |
+
+---
+
 ## Acknowledgments
 
 - Kubernetes documentation and community
 - Flux CD project maintainers
 - GitHub Actions team
 - Open source security tools contributors
+- RKE2 and Rancher teams

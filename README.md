@@ -2,97 +2,7 @@
 
 # Task Management System - End-to-End DevOps Project
 
-<svg width="800" height="120" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
-  <rect width="800" height="120" fill="#0d1117" rx="10"/>
-  
-  <!-- Title with gradient -->
-  <defs>
-    <linearGradient id="titleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#58a6ff;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#1f6feb;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#388bfd;stop-opacity:1" />
-    </linearGradient>
-    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3fb950;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#1f6feb;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  
-  <!-- Kubernetes icon -->
-  <g transform="translate(50, 30)">
-    <circle cx="30" cy="30" r="28" fill="url(#iconGradient)" opacity="0.2"/>
-    <path d="M 30 10 L 35 20 L 30 50 L 25 20 Z" fill="#ffffff" opacity="0.9"/>
-    <circle cx="30" cy="30" r="8" fill="#326ce5"/>
-    <path d="M 30 22 L 32 28 L 38 28 L 33 32 L 35 38 L 30 34 L 25 38 L 27 32 L 22 28 L 28 28 Z" fill="#ffffff"/>
-  </g>
-  
-  <!-- Docker icon -->
-  <g transform="translate(130, 35)">
-    <rect x="0" y="15" width="12" height="10" fill="#2496ed" rx="1"/>
-    <rect x="14" y="15" width="12" height="10" fill="#2496ed" rx="1"/>
-    <rect x="28" y="15" width="12" height="10" fill="#2496ed" rx="1"/>
-    <rect x="7" y="5" width="12" height="10" fill="#2496ed" rx="1"/>
-    <rect x="21" y="5" width="12" height="10" fill="#2496ed" rx="1"/>
-  </g>
-  
-  <!-- GitOps Flow Arrow -->
-  <path d="M 200 60 L 280 60" stroke="#3fb950" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
-  <defs>
-    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#3fb950"/>
-    </marker>
-  </defs>
-  
-  <!-- GitHub Actions icon -->
-  <g transform="translate(300, 35)">
-    <circle cx="20" cy="20" r="18" fill="#2088ff" opacity="0.3"/>
-    <circle cx="20" cy="20" r="12" fill="none" stroke="#2088ff" stroke-width="2"/>
-    <circle cx="20" cy="8" r="3" fill="#2088ff"/>
-    <circle cx="20" cy="32" r="3" fill="#2088ff"/>
-    <circle cx="8" cy="20" r="3" fill="#2088ff"/>
-    <circle cx="32" cy="20" r="3" fill="#2088ff"/>
-  </g>
-  
-  <!-- Second Arrow -->
-  <path d="M 360 60 L 440 60" stroke="#f97583" stroke-width="3" fill="none" marker-end="url(#arrowhead2)"/>
-  <defs>
-    <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#f97583"/>
-    </marker>
-  </defs>
-  
-  <!-- Prometheus icon -->
-  <g transform="translate(460, 35)">
-    <circle cx="20" cy="20" r="18" fill="#e6522c" opacity="0.2"/>
-    <path d="M 20 5 L 25 15 L 35 15 L 27 22 L 30 32 L 20 26 L 10 32 L 13 22 L 5 15 L 15 15 Z" fill="#e6522c"/>
-  </g>
-  
-  <!-- Grafana icon -->
-  <g transform="translate(520, 35)">
-    <rect x="5" y="8" width="30" height="24" fill="#f46800" opacity="0.3" rx="2"/>
-    <path d="M 10 28 Q 20 12, 30 28" stroke="#f46800" stroke-width="3" fill="none"/>
-    <circle cx="20" cy="20" r="2" fill="#f46800"/>
-  </g>
-  
-  <!-- Security Shield -->
-  <g transform="translate(580, 35)">
-    <path d="M 20 5 L 30 10 L 30 22 Q 30 30, 20 35 Q 10 30, 10 22 L 10 10 Z" fill="#3fb950" opacity="0.3"/>
-    <path d="M 20 10 L 26 14 L 26 22 Q 26 27, 20 30 Q 14 27, 14 22 L 14 14 Z" fill="#3fb950"/>
-    <path d="M 18 20 L 20 22 L 24 16" stroke="#ffffff" stroke-width="2" fill="none"/>
-  </g>
-  
-  <!-- Flux CD icon -->
-  <g transform="translate(650, 35)">
-    <circle cx="20" cy="20" r="18" fill="#5468ff" opacity="0.2"/>
-    <path d="M 12 12 Q 20 20, 12 28 M 20 12 Q 28 20, 20 28 M 28 12 Q 20 20, 28 28" stroke="#5468ff" stroke-width="2.5" fill="none"/>
-  </g>
-  
-  <!-- Badge Text -->
-  <text x="400" y="105" font-family="Arial, sans-serif" font-size="14" fill="#8b949e" text-anchor="middle">
-    Production-Ready • Cloud-Native • Security-First • GitOps
-  </text>
-</svg>
+![Architecture Diagram](Screenshots/arch.svg)
 
 <p align="center">
   <em>A production-grade, cloud-native task management application demonstrating modern DevOps practices with complete CI/CD automation, Kubernetes orchestration, GitOps workflows, and security hardening.</em>
@@ -230,22 +140,6 @@ This project demonstrates a complete DevOps lifecycle for a microservices-based 
                                             |               |
                                             | Port: 3306    |
                                             +---------------+
-```
-
-### CI/CD Pipeline Flow
-
-```
-+--------+     +----------+     +----------+     +----------+     +----------+
-| Code   |---->| GitHub   |---->| GitHub   |---->| Docker   |---->| Flux CD  |
-| Commit |     | Repo     |     | Actions  |     | Registry |     | Sync     |
-+--------+     +----------+     +----------+     +----------+     +----------+
-                                     |                                  |
-                                     v                                  v
-                               +----------+                       +----------+
-                               | Trivy    |                       | K8s      |
-                               | Security |                       | Cluster  |
-                               | Scan     |                       | Deploy   |
-                               +----------+                       +----------+
 ```
 ---
 
